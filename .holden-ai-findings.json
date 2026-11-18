@@ -1,0 +1,57 @@
+{
+  "scan_date": "2026-11-18T00:00:00Z",
+  "scan_path": ".",
+  "category": "all",
+  "findings": [
+    {
+      "id": "HOLDEN_AI_001",
+      "status": "fixed",
+      "first_seen": "2026-11-18",
+      "last_seen": "2026-11-18",
+      "unresolved_since": null,
+      "suppression_reason": null,
+      "principle": "reliability",
+      "severity": "LOW",
+      "confidence": "high",
+      "title": "var.subnets accepts subnets outside var.region and more than 10 entries, both of which the API rejects at apply",
+      "file": "variables.tf",
+      "line": 37,
+      "resource": "variable.subnets",
+      "related_resources": ["google_managed_kafka_cluster.main"],
+      "explanation": "Managed Kafka requires every network_configs subnet to be in the cluster's region and allows at most 10. The validation only checks the path shape, so a subnet from another region (an easy slip since var.region and the subnet are passed separately) or an 11th subnet plans cleanly and fails creating the cluster. Best-fit principle: apply-time correctness.",
+      "remediation": "Cap var.subnets at 10 and validate that each subnet's regions/<r>/ segment equals var.region (the module already relies on Terraform 1.9 cross-variable validation for kms_key_name).",
+      "fixable": true,
+      "fix": "validation {\n  condition     = alltrue([for s in var.subnets : can(regex(\"^projects/[^/]+/regions/${var.region}/subnetworks/[^/]+$\", s))])\n  error_message = \"var.subnets must all be in var.region\"\n}"
+    },
+    {
+      "id": "HOLDEN_AI_002",
+      "status": "fixed",
+      "first_seen": "2026-11-18",
+      "last_seen": "2026-11-18",
+      "unresolved_since": null,
+      "suppression_reason": null,
+      "principle": "maintainability",
+      "severity": "LOW",
+      "confidence": "high",
+      "title": "var.acls validation rejects the documented prefixed ACL IDs (topicPrefixed/, consumerGroupPrefixed/, transactionalIdPrefixed/)",
+      "file": "variables.tf",
+      "line": 105,
+      "resource": "variable.acls",
+      "related_resources": ["google_managed_kafka_acl.main"],
+      "explanation": "google_managed_kafka_acl supports PREFIXED resource patterns via acl_id values like topicPrefixed/orders-, but the key regex only allows the literal forms. Callers who need prefix ACLs (the usual way to scope a producer to a topic family) are forced to fall back to allTopics, which is broader than intended.",
+      "remediation": "Allow an optional Prefixed suffix on the topic/consumerGroup/transactionalId ACL ID forms.",
+      "fixable": true,
+      "fix": "can(regex(\"^(cluster|allTopics|allConsumerGroups|allTransactionalIds|(topic|consumerGroup|transactionalId)(Prefixed)?/.+)$\", k))"
+    }
+  ],
+  "suggested_policies": [
+    {
+      "rationale": "No built-in policy covers google_managed_kafka_topic. A replication factor below 3 is a single attribute check that applies to any Terraform creating Managed Kafka topics, and this module already enforces it through input validation.",
+      "yaml": "id: LOCAL_GCP_001\nname: Managed Kafka topics must use a replication factor of at least 3\nprinciple: reliability\nseverity: MEDIUM\nrationale: |\n  Managed Service for Apache Kafka spreads partition replicas across zones. A topic\n  with a replication factor below 3 loses availability, or data that was only on the\n  failed broker, when a broker or zone fails.\nmessage: |\n  google_managed_kafka_topic has replication_factor below 3.\nremediation: |\n  Set replication_factor = 3 (or higher) on the topic.\nresources:\n  google_managed_kafka_topic:\n    path: replication_factor\n    gte: 3\n",
+      "status": "installed",
+      "first_seen": "2026-11-18",
+      "last_seen": "2026-11-18"
+    }
+  ],
+  "suggested_suppressions": []
+}

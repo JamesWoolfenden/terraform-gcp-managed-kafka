@@ -1,0 +1,16 @@
+id: LOCAL_GCP_001
+name: Managed Kafka topics must use a replication factor of at least 3
+principle: reliability
+severity: MEDIUM
+rationale: |
+  Managed Service for Apache Kafka spreads partition replicas across zones. A topic
+  with a replication factor below 3 loses availability, or data that was only on the
+  failed broker, when a broker or zone fails.
+message: |
+  google_managed_kafka_topic has replication_factor below 3.
+remediation: |
+  Set replication_factor = 3 (or higher) on the topic.
+resources:
+  google_managed_kafka_topic:
+    path: replication_factor
+    gte: 3

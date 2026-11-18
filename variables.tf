@@ -36,11 +36,16 @@ variable "kms_key_name" {
 
 variable "subnets" {
   type        = list(string)
-  description = "Subnetworks (projects/P/regions/R/subnetworks/S) the cluster is reachable from via Private Service Connect. Brokers have no public endpoint"
+  description = "Subnetworks (projects/P/regions/R/subnetworks/S) the cluster is reachable from via Private Service Connect; 1-10 subnets, each in var.region and at most one per VPC network. Brokers have no public endpoint"
 
   validation {
-    condition     = length(var.subnets) > 0 && alltrue([for s in var.subnets : can(regex("^projects/[^/]+/regions/[^/]+/subnetworks/[^/]+$", s))])
-    error_message = "var.subnets must contain at least one subnetwork in the form projects/P/regions/R/subnetworks/S"
+    condition     = length(var.subnets) > 0 && length(var.subnets) <= 10 && alltrue([for s in var.subnets : can(regex("^projects/[^/]+/regions/[^/]+/subnetworks/[^/]+$", s))])
+    error_message = "var.subnets must contain 1-10 subnetworks in the form projects/P/regions/R/subnetworks/S"
+  }
+
+  validation {
+    condition     = alltrue([for s in var.subnets : can(regex("^projects/[^/]+/regions/${var.region}/subnetworks/[^/]+$", s))])
+    error_message = "var.subnets must all be in var.region; Managed Kafka only allocates broker addresses in subnets in the cluster's region"
   }
 }
 
@@ -103,11 +108,11 @@ variable "acls" {
     operation       = string
     permission_type = optional(string, "ALLOW")
   })))
-  description = "Kafka ACLs keyed by ACL ID (e.g. \"topic/orders\", \"consumerGroup/billing\", \"allTopics\"). Principals are \"User:{service-account-email}\""
+  description = "Kafka ACLs keyed by ACL ID (e.g. \"topic/orders\", \"topicPrefixed/orders-\", \"consumerGroup/billing\", \"allTopics\"). Principals are \"User:{service-account-email}\""
   default     = {}
 
   validation {
-    condition     = alltrue([for k, v in var.acls : can(regex("^(cluster|allTopics|allConsumerGroups|allTransactionalIds|(topic|consumerGroup|transactionalId)/.+)$", k)) && length(v) > 0])
+    condition     = alltrue([for k, v in var.acls : can(regex("^(cluster|allTopics|allConsumerGroups|allTransactionalIds|(topic|consumerGroup|transactionalId)(Prefixed)?/.+)$", k)) && length(v) > 0])
     error_message = "var.acls keys must be valid ACL IDs and each ACL must have at least one entry"
   }
 
