@@ -103,7 +103,7 @@ variable "acls" {
     operation       = string
     permission_type = optional(string, "ALLOW")
   })))
-  description = "Kafka ACLs keyed by ACL ID (e.g. \"topic/orders\", \"consumerGroup/billing\", \"allTopics\"). Principals are \"User:<service-account-email>\""
+  description = "Kafka ACLs keyed by ACL ID (e.g. \"topic/orders\", \"consumerGroup/billing\", \"allTopics\"). Principals are \"User:{service-account-email}\""
   default     = {}
 
   validation {

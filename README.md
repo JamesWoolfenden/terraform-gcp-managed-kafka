@@ -66,7 +66,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_acls"></a> [acls](#input\_acls) | Kafka ACLs keyed by ACL ID (e.g. "topic/orders", "consumerGroup/billing", "allTopics"). Principals are "User:\<service-account-email\>\ | <pre>map(list(object({<br/>        principal       = string<br/>        operation       = string<br/>        permission\_type = optional(string, "ALLOW")<br/>      })))</pre> | `{}` | no |
+| <a name="input_acls"></a> [acls](#input\_acls) | Kafka ACLs keyed by ACL ID (e.g. "topic/orders", "consumerGroup/billing", "allTopics"). Principals are "User:{service-account-email}" | <pre>map(list(object({<br/>    principal       = string<br/>    operation       = string<br/>    permission_type = optional(string, "ALLOW")<br/>  })))</pre> | `{}` | no |
 | <a name="input_cluster_id"></a> [cluster\_id](#input\_cluster\_id) | ID of the Managed Service for Apache Kafka cluster | `string` | n/a | yes |
 | <a name="input_kms_key_name"></a> [kms\_key\_name](#input\_kms\_key\_name) | CMEK key used to encrypt broker storage; must be in the same region as the cluster | `string` | n/a | yes |
 | <a name="input_labels"></a> [labels](#input\_labels) | Labels applied to the cluster for cost allocation and ownership tracking | `map(string)` | `{}` | no |
@@ -74,7 +74,7 @@ No modules.
 | <a name="input_rebalance_mode"></a> [rebalance\_mode](#input\_rebalance\_mode) | Partition rebalance behaviour when the cluster scales (AUTO\_REBALANCE\_ON\_SCALE\_UP or NO\_REBALANCE) | `string` | `"AUTO_REBALANCE_ON_SCALE_UP"` | no |
 | <a name="input_region"></a> [region](#input\_region) | Region for the Kafka cluster | `string` | n/a | yes |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | Subnetworks (projects/P/regions/R/subnetworks/S) the cluster is reachable from via Private Service Connect. Brokers have no public endpoint | `list(string)` | n/a | yes |
-| <a name="input_topics"></a> [topics](#input\_topics) | Topics to create, keyed by topic ID | <pre>map(object({<br/>      partition\_count    = optional(number, 3)<br/>      replication\_factor = optional(number, 3)<br/>      configs            = optional(map(string), {})<br/>    }))</pre> | `{}` | no |
+| <a name="input_topics"></a> [topics](#input\_topics) | Topics to create, keyed by topic ID | <pre>map(object({<br/>    partition_count    = optional(number, 3)<br/>    replication_factor = optional(number, 3)<br/>    configs            = optional(map(string), {})<br/>  }))</pre> | `{}` | no |
 | <a name="input_vcpu_count"></a> [vcpu\_count](#input\_vcpu\_count) | Number of vCPUs provisioned for the cluster (minimum 3) | `number` | `3` | no |
 
 ## Outputs
